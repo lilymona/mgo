@@ -245,18 +245,19 @@ func (e *encoder) addElemName(kind byte, name string) {
 }
 
 func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
-
 	if !v.IsValid() {
 		e.addElemName(0x0A, name)
 		return
 	}
 
 	if getter, ok := v.Interface().(Getter); ok {
-		getv, err := getter.GetBSON()
-		if err != nil {
-			panic(err)
+		if !(v.Kind() == reflect.Ptr && v.IsNil()) {
+			getv, err := getter.GetBSON()
+			if err != nil {
+				panic(err)
+			}
+			e.addElem(name, reflect.ValueOf(getv), minSize)
 		}
-		e.addElem(name, reflect.ValueOf(getv), minSize)
 		return
 	}
 
